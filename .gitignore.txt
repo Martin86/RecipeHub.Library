@@ -1,0 +1,16 @@
+# .NET- und Visual Studio spezifische Dateien und Ordner
+.vs/
+.vscode/
+bin/
+obj/
+
+# User-spezifische Datei
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Paketdaten
+*.nupkg
+project.lock.json
+project.fragment.lock.json

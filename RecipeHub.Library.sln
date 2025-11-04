@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeHub.Library", "RecipeHub.Library\RecipeHub.Library.csproj", "{A2B96DE8-16A3-4BFD-9E68-9A5D05E8FDD8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecipeHub.WinForms", "RecipeHub.WinForms\RecipeHub.WinForms.csproj", "{1EBB5E91-A056-482B-B0B9-9E201C9E75E0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A2B96DE8-16A3-4BFD-9E68-9A5D05E8FDD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2B96DE8-16A3-4BFD-9E68-9A5D05E8FDD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2B96DE8-16A3-4BFD-9E68-9A5D05E8FDD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2B96DE8-16A3-4BFD-9E68-9A5D05E8FDD8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EBB5E91-A056-482B-B0B9-9E201C9E75E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EBB5E91-A056-482B-B0B9-9E201C9E75E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EBB5E91-A056-482B-B0B9-9E201C9E75E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EBB5E91-A056-482B-B0B9-9E201C9E75E0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EEF234FC-DCEF-468F-B023-FF2FEF6F78EF}
+	EndGlobalSection
+EndGlobal
