@@ -530,10 +530,30 @@ namespace RecipeHub.WinForms
             }
         }
 
-        private void buttonLogout_Click(object sender, EventArgs e)
+        private async void buttonLogout_Click(object sender, EventArgs e)
         {
+            // Edit-Tab schließen, falls offen
+            if (_editMode) CloseEditTab();
+
+            // Logout
             _currentUser = null;
             textBoxPassword.Clear();
+
+            // Auswahlen (Neues Rezept) zurücksetzen
+            _selectedIngredients.Clear();
+            _selectedCategories.Clear();
+            flowSelectedIngredients.Controls.Clear();
+            flowLayoutPanelKategory.Controls.Clear();
+            comboBoxIngredients.SelectedIndex = -1;
+            comboBoxCategory.SelectedIndex = -1;
+
+            // Benutzergebundene Grids leeren
+            dgvMyRecipes.DataSource = null;
+            dgvMyFavorites.DataSource = null;
+
+            // Alle Rezepte neu laden
+            await LoadAllRecipesAsync();
+
             UpdateUiState();
             MessageBox.Show("Abgemeldet.", "Logout",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -612,7 +632,7 @@ namespace RecipeHub.WinForms
                     Name = name,
                     Description = desc,
                     UserId = _currentUser.Id,
-                    Categories = new List<Category> { _selectedCategory },
+                    Categories = new List<Category>(_selectedCategories),
                     Ingredients = new List<Ingredient>(_selectedIngredients)
                 };
 
@@ -1213,9 +1233,13 @@ namespace RecipeHub.WinForms
         #region UI-Helfer
         private void ClearChips()
         {
+            _selectedCategories.Clear();
             _selectedIngredients.Clear();
             foreach (Control c in flowSelectedIngredients.Controls) c.Dispose();
             flowSelectedIngredients.Controls.Clear();
+            
+            foreach (Control c in flowLayoutPanelKategory.Controls) c.Dispose();
+            flowLayoutPanelKategory.Controls.Clear();
         }
         private void AddChip(Ingredient ing)
         {
