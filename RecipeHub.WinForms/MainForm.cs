@@ -255,7 +255,7 @@ namespace RecipeHub.WinForms
         private void ConfigureMyRecipesGrid()
         {
             dgvMyRecipes.AutoGenerateColumns = false;
-            dgvMyRecipes.ReadOnly = false; 
+            dgvMyRecipes.ReadOnly = false;
             dgvMyRecipes.AllowUserToAddRows = false;
             dgvMyRecipes.AllowUserToDeleteRows = false;
             dgvMyRecipes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -264,11 +264,11 @@ namespace RecipeHub.WinForms
             dgvMyRecipes.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dgvMyRecipes.Columns.Clear();
 
-            dgvMyRecipes.Columns.Add(new DataGridViewTextBoxColumn 
-            { 
-                Name = "colId", 
-                DataPropertyName = "Id", 
-                Visible = false 
+            dgvMyRecipes.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "colId",
+                DataPropertyName = "Id",
+                Visible = false
             });
 
             dgvMyRecipes.Columns.Add(new DataGridViewTextBoxColumn
@@ -285,7 +285,7 @@ namespace RecipeHub.WinForms
                 Name = "colIngredients",
                 DataPropertyName = "Ingredients",
                 HeaderText = "Zutaten",
-                ReadOnly = true, 
+                ReadOnly = true,
                 DefaultCellStyle = { WrapMode = DataGridViewTriState.True }
             });
 
@@ -320,11 +320,11 @@ namespace RecipeHub.WinForms
             dgvMyFavorites.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dgvMyFavorites.Columns.Clear();
 
-            dgvMyFavorites.Columns.Add(new DataGridViewTextBoxColumn 
-            { 
-                Name = "favId", 
-                DataPropertyName = "Id", 
-                Visible = false 
+            dgvMyFavorites.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "favId",
+                DataPropertyName = "Id",
+                Visible = false
             });
 
             dgvMyFavorites.Columns.Add(new DataGridViewTextBoxColumn
@@ -344,10 +344,11 @@ namespace RecipeHub.WinForms
                 DefaultCellStyle = { WrapMode = DataGridViewTriState.True }
             });
 
-            dgvMyFavorites.Columns.Add(new DataGridViewTextBoxColumn 
-            { Name = "favOwner", 
-                DataPropertyName = "Owner", 
-                HeaderText = "Besitzer" 
+            dgvMyFavorites.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "favOwner",
+                DataPropertyName = "Owner",
+                HeaderText = "Besitzer"
             });
         }
         // Laden der Lookup-Daten für Comboboxen für Rezeptanlegen
@@ -449,7 +450,8 @@ namespace RecipeHub.WinForms
             }
         }
         // Laden der Lookup-Daten für Comboboxen für Rezeptanlegen
-        private async Task LoadCategoriesAsync(int? selectId = null)
+
+        /*private async Task LoadCategoriesAsync(int? selectId = null)
         {
             var cats = await _categoryService.GetAllAsync();
             comboBoxCategory.DataSource = null;
@@ -460,7 +462,7 @@ namespace RecipeHub.WinForms
 
             if (selectId.HasValue)
                 comboBoxCategory.SelectedValue = selectId.Value;
-        }
+        }*/
         #endregion
 
         #region Login / Logout
@@ -582,10 +584,26 @@ namespace RecipeHub.WinForms
             var name = (textBoxRecipeName.Text ?? "").Trim();
             var desc = (textBoxDescription.Text ?? "").Trim();
 
-            if (string.IsNullOrWhiteSpace(name)) { MessageBox.Show("Bitte Rezeptname eingeben."); return; }
-            if (string.IsNullOrWhiteSpace(desc)) { MessageBox.Show("Bitte Beschreibung eingeben."); return; }
-            if (comboBoxCategory.SelectedItem is not Category selectedCategory) { MessageBox.Show("Bitte Kategorie wählen."); return; }
-            if (_selectedIngredients.Count == 0) { MessageBox.Show("Mindestens eine Zutat auswählen."); return; }
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                MessageBox.Show("Bitte Rezeptname eingeben.");
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(desc))
+            {
+                MessageBox.Show("Bitte Beschreibung eingeben.");
+                return;
+            }
+            if (_selectedCategories.Count == 0)
+            {
+                MessageBox.Show("Bitte Kategorie wählen.");
+                return;
+            }
+            if (_selectedIngredients.Count == 0)
+            {
+                MessageBox.Show("Mindestens eine Zutat auswählen.");
+                return;
+            }
 
             try
             {
@@ -594,7 +612,7 @@ namespace RecipeHub.WinForms
                     Name = name,
                     Description = desc,
                     UserId = _currentUser.Id,
-                    Categories = new List<Category> { selectedCategory },
+                    Categories = new List<Category> { _selectedCategory },
                     Ingredients = new List<Ingredient>(_selectedIngredients)
                 };
 
@@ -1131,10 +1149,26 @@ namespace RecipeHub.WinForms
         {
             var name = (textBoxEditName.Text ?? "").Trim();
             var desc = (textBoxEditDescription.Text ?? "").Trim();
-            if (string.IsNullOrWhiteSpace(name)) { MessageBox.Show("Name fehlt."); return; }
-            if (string.IsNullOrWhiteSpace(desc)) { MessageBox.Show("Beschreibung fehlt."); return; }
-            if (_editIngredientIds.Count == 0) { MessageBox.Show("Mind. eine Zutat wählen."); return; }
-            if (_editCategoryIds.Count == 0) { MessageBox.Show("Mind. eine Kategorie wählen."); return; }
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                MessageBox.Show("Name fehlt.");
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(desc))
+            {
+                MessageBox.Show("Beschreibung fehlt.");
+                return;
+            }
+            if (_editIngredientIds.Count == 0)
+            {
+                MessageBox.Show("Mind. eine Zutat wählen.");
+                return;
+            }
+            if (_editCategoryIds.Count == 0)
+            {
+                MessageBox.Show("Mind. eine Kategorie wählen.");
+                return;
+            }
 
             try
             {
@@ -1200,7 +1234,7 @@ namespace RecipeHub.WinForms
                 FlowDirection = FlowDirection.LeftToRight,
                 WrapContents = false,
                 BackColor = Color.WhiteSmoke,
-                BorderStyle = BorderStyle.FixedSingle,   
+                BorderStyle = BorderStyle.FixedSingle,
                 Margin = new Padding(4),
                 Padding = new Padding(8, 4, 8, 4),
                 Tag = ing.Id
@@ -1215,7 +1249,7 @@ namespace RecipeHub.WinForms
 
             var btn = new Button
             {
-                Text = "×",                          
+                Text = "×",
                 AutoSize = true,
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 Padding = Padding.Empty,
@@ -1257,28 +1291,28 @@ namespace RecipeHub.WinForms
                 Padding = new Padding(8, 4, 8, 4),
                 Tag = id
             };
-            var lbl = new Label 
-            { 
-                AutoSize = true, 
-                Text = name, 
-                Margin = new Padding(0, 3, 6, 0) 
+            var lbl = new Label
+            {
+                AutoSize = true,
+                Text = name,
+                Margin = new Padding(0, 3, 6, 0)
             };
 
-            var btn = new Button 
-            { 
-                Text = "×", 
-                AutoSize = true, 
-                FlatStyle = FlatStyle.Flat, 
-                Padding = Padding.Empty, 
-                Margin = new Padding(0) 
+            var btn = new Button
+            {
+                Text = "×",
+                AutoSize = true,
+                FlatStyle = FlatStyle.Flat,
+                Padding = Padding.Empty,
+                Margin = new Padding(0)
             };
 
             btn.FlatAppearance.BorderSize = 0;
-            btn.Click += (_, __) => 
-                { 
-                    bag.Remove(id); 
-                    host.Controls.Remove(chip); 
-                    chip.Dispose(); 
+            btn.Click += (_, __) =>
+                {
+                    bag.Remove(id);
+                    host.Controls.Remove(chip);
+                    chip.Dispose();
                 };
 
             chip.Controls.Add(lbl);
@@ -1290,7 +1324,7 @@ namespace RecipeHub.WinForms
             // Duplikate verhindern
             if (_selectedCategories.Any(c => c.Id == cat.Id))
             {
-                return; 
+                return;
             }
             _selectedCategories.Add(cat);
 
@@ -1340,5 +1374,49 @@ namespace RecipeHub.WinForms
             flowLayoutPanelKategory.Controls.Add(chip);
         }
         #endregion
+
+        private async void dgvMyRecipes_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (_currentUser == null)
+            {
+                return;
+            }
+            if (e.RowIndex < 0)
+            {
+                return;
+            }
+
+            var grid = dgvMyRecipes;
+            var colName = grid.Columns[e.ColumnIndex].Name;
+
+            // Nur Löschen-Spalte behandeln
+            if (colName != "colDelete")
+            {
+                return; 
+            }
+
+            // ID aus versteckter Spalte holen
+            var idObj = grid.Rows[e.RowIndex].Cells["colId"].Value;
+            if (idObj is null || idObj == DBNull.Value) return;
+            int recipeId = Convert.ToInt32(idObj);
+
+            // Bestätigen
+            if (MessageBox.Show("Rezept wirklich löschen?", "Bestätigen",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            {
+                return;
+            }
+
+            try
+            {
+                await _recipeService.DeleteAsync(recipeId, _currentUser.Id);
+                await LoadMyRecipesAsync();
+                await LoadAllRecipesAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Löschen fehlgeschlagen:\n" + ex.Message);
+            }
+        }
     }
 }

@@ -183,6 +183,7 @@
             dgvMyRecipes.Name = "dgvMyRecipes";
             dgvMyRecipes.Size = new Size(830, 547);
             dgvMyRecipes.TabIndex = 0;
+            dgvMyRecipes.CellContentClick += dgvMyRecipes_CellContentClick;
             dgvMyRecipes.CellDoubleClick += dgvMyRecipes_CellDoubleClick;
             // 
             // tabPageFavorites
@@ -418,7 +419,7 @@
             textBoxRecipeName.BorderStyle = BorderStyle.FixedSingle;
             textBoxRecipeName.Location = new Point(147, 15);
             textBoxRecipeName.Name = "textBoxRecipeName";
-            textBoxRecipeName.Size = new Size(100, 23);
+            textBoxRecipeName.Size = new Size(387, 23);
             textBoxRecipeName.TabIndex = 1;
             // 
             // label3
@@ -573,7 +574,7 @@
             textBoxEditName.BorderStyle = BorderStyle.FixedSingle;
             textBoxEditName.Location = new Point(119, 15);
             textBoxEditName.Name = "textBoxEditName";
-            textBoxEditName.Size = new Size(119, 23);
+            textBoxEditName.Size = new Size(412, 23);
             textBoxEditName.TabIndex = 10;
             // 
             // textBoxCreateIngredientInEdit
