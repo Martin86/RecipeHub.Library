@@ -49,6 +49,7 @@ RecipeHub/
 ├── RecipeHub.Library/
 │   ├── Models/           # Enthält alle Datenmodelle mit EF Core-Annotationen (User, Recipe, Category, Ingredient)
 │   ├── Data/             # EF Core DbContext & Migrations
+│   ├── Migrationen/      # Automatisch generierte Migrationsdateien über EF Core / PaketmanagerKonsole
 │   ├── Repositories/     # Repository Architektur für generische CRUD-Operationen 
 │   ├── Services/         # Geschäftslogik 
 │   └── Zutatenliste.txt  # Beispiel-Zutatenliste
