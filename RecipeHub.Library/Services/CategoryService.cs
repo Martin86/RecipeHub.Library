@@ -34,7 +34,9 @@ public class CategoryService
             c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
         if (existing is not null)
-            return existing;
+        {
+            throw new ArgumentException("Kategorie existiert bereits.");
+        } 
 
         // Neue Kategorie speichern
         var category = new Category { Name = name.Trim() };
@@ -51,11 +53,16 @@ public class CategoryService
         // Name muss eindeutig bleiben
         bool exists = await _db.Categories
             .AnyAsync(c => c.Id != categoryId && c.Name.ToLower() == n.ToLower());
-        if (exists)
+        if (exists) 
+        {
             throw new InvalidOperationException("Kategoriename ist bereits vergeben.");
+        }
 
-        var cat = await _db.Categories.FindAsync(categoryId)
-                  ?? throw new InvalidOperationException("Kategorie nicht gefunden.");
+        var cat = await _db.Categories.FindAsync(categoryId);
+        if (cat == null)
+        {
+            throw new InvalidOperationException("Kategorie nicht gefunden.");
+        }
 
         cat.Name = n;
         await _db.SaveChangesAsync();

@@ -23,13 +23,20 @@ namespace RecipeHub.WinForms
         private readonly List<Ingredient> _selectedIngredients = new();
         private readonly List<Category> _selectedCategories = new();
 
+        //  Ausgewählte Kategorie für Rezept anlegen
         private Category? _selectedCategory;
+
+        // Aktueller eingeloggter User
         private User? _currentUser;
+
+        // Favoriten-Event-Suppressor
         private bool _suppressFavEvents = false;
 
         // Bearbeitungsmodus für eigene Rezepte
         private bool _editMode = false;
         private int _editRecipeId = 0;
+
+        // Für veränderte Zutaten/Kategorien im Edit-Modus
         private readonly HashSet<int> _editIngredientIds = new();
         private readonly HashSet<int> _editCategoryIds = new();
 
@@ -78,17 +85,22 @@ namespace RecipeHub.WinForms
             // Passwort-Eingabe verbergen
             textBoxPassword.UseSystemPasswordChar = true;
         }
+
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             // Ressourcen freigeben
             _db?.Dispose();
             base.OnFormClosed(e);
         }
+
         private async void Form1_Load(object? sender, EventArgs e)
         {
             try
             {
                 await _db.Database.MigrateAsync();
+
+                // Laden der Zutatenliste aus der Textdatei in die Datenbank
+                await _ingredientService.LoadIngredientsToDatabaseAsync();
             }
             catch (Exception ex)
             {
@@ -102,7 +114,8 @@ namespace RecipeHub.WinForms
 
                 // Comboboxen befüllen
                 await LoadLookupsAsync();
-                await LoadFilterLookupsAsync();
+                await LoadFilterCategoryLookupsAsync();
+                await LoadFilterIngredientLookupAsync();
                 await LoadEditCategoryLookupAsync();
 
                 UpdateUiState();
@@ -132,7 +145,10 @@ namespace RecipeHub.WinForms
             tabPageAddRecipe.Enabled = isLoggedIn;
 
             // zurück auf „Alle Rezepte“ springen, wenn ausgeloggt
-            if (!isLoggedIn) tabControl.SelectedTab = tabPageAllRecipe;
+            if (!isLoggedIn)
+            {
+                tabControl.SelectedTab = tabPageAllRecipe;
+            }
 
             // Logout-Button (aktiv nur wenn eingeloggt)
             buttonLogout.Enabled = isLoggedIn;
@@ -222,8 +238,12 @@ namespace RecipeHub.WinForms
 
             dataGridAllRecipes.Columns.AddRange(colTitle, colDesc, colCategories, colIngs, colFav);
 
+            // Wenn der Nutzer eine Checkbox anklickt, ist die Zelle zunächst "dirty" (noch nicht übernommen).
+            // Mit CommitEdit, EndEdit wird der neue Wert sofort commited,
+            // damit CellValueChanged direkt feuert und sofort auf den Klick reagiert wird
             dataGridAllRecipes.CurrentCellDirtyStateChanged += (s, e) =>
             {
+                // Nur bei Checkboxen
                 if (dataGridAllRecipes.IsCurrentCellDirty &&
                     dataGridAllRecipes.CurrentCell is DataGridViewCheckBoxCell)
                 {
@@ -235,7 +255,7 @@ namespace RecipeHub.WinForms
         private void ConfigureMyRecipesGrid()
         {
             dgvMyRecipes.AutoGenerateColumns = false;
-            dgvMyRecipes.ReadOnly = false; // erlaubt Edit in Textspalten
+            dgvMyRecipes.ReadOnly = false; 
             dgvMyRecipes.AllowUserToAddRows = false;
             dgvMyRecipes.AllowUserToDeleteRows = false;
             dgvMyRecipes.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -244,7 +264,12 @@ namespace RecipeHub.WinForms
             dgvMyRecipes.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dgvMyRecipes.Columns.Clear();
 
-            dgvMyRecipes.Columns.Add(new DataGridViewTextBoxColumn { Name = "colId", DataPropertyName = "Id", Visible = false });
+            dgvMyRecipes.Columns.Add(new DataGridViewTextBoxColumn 
+            { 
+                Name = "colId", 
+                DataPropertyName = "Id", 
+                Visible = false 
+            });
 
             dgvMyRecipes.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -260,7 +285,7 @@ namespace RecipeHub.WinForms
                 Name = "colIngredients",
                 DataPropertyName = "Ingredients",
                 HeaderText = "Zutaten",
-                ReadOnly = true, // Anzeige (CSV), nicht editieren
+                ReadOnly = true, 
                 DefaultCellStyle = { WrapMode = DataGridViewTriState.True }
             });
 
@@ -285,7 +310,7 @@ namespace RecipeHub.WinForms
         private void ConfigureFavoritesGrid()
         {
             dgvMyFavorites.AutoGenerateColumns = false;
-            dgvMyFavorites.ReadOnly = true; // nur Anzeige
+            dgvMyFavorites.ReadOnly = true;
             dgvMyFavorites.AllowUserToAddRows = false;
             dgvMyFavorites.AllowUserToDeleteRows = false;
             dgvMyFavorites.MultiSelect = false;
@@ -295,7 +320,13 @@ namespace RecipeHub.WinForms
             dgvMyFavorites.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dgvMyFavorites.Columns.Clear();
 
-            dgvMyFavorites.Columns.Add(new DataGridViewTextBoxColumn { Name = "favId", DataPropertyName = "Id", Visible = false });
+            dgvMyFavorites.Columns.Add(new DataGridViewTextBoxColumn 
+            { 
+                Name = "favId", 
+                DataPropertyName = "Id", 
+                Visible = false 
+            });
+
             dgvMyFavorites.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "favName",
@@ -304,6 +335,7 @@ namespace RecipeHub.WinForms
                 MinimumWidth = 150,
                 DefaultCellStyle = { Font = new Font(Font, FontStyle.Bold) }
             });
+
             dgvMyFavorites.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "favIngredients",
@@ -311,8 +343,14 @@ namespace RecipeHub.WinForms
                 HeaderText = "Zutaten",
                 DefaultCellStyle = { WrapMode = DataGridViewTriState.True }
             });
-            dgvMyFavorites.Columns.Add(new DataGridViewTextBoxColumn { Name = "favOwner", DataPropertyName = "Owner", HeaderText = "Besitzer" });
+
+            dgvMyFavorites.Columns.Add(new DataGridViewTextBoxColumn 
+            { Name = "favOwner", 
+                DataPropertyName = "Owner", 
+                HeaderText = "Besitzer" 
+            });
         }
+        // Laden der Lookup-Daten für Comboboxen für Rezeptanlegen
         private async Task LoadLookupsAsync()
         {
             // Zutaten
@@ -329,6 +367,7 @@ namespace RecipeHub.WinForms
             comboBoxCategory.ValueMember = "Id";
             comboBoxCategory.SelectedIndex = -1;
         }
+        // Laden der Lookup-Daten für Comboboxen im Edit-Tab
         private async Task LoadEditLookupsAsync()
         {
             var ings = await _ingredientService.GetAllAsync();
@@ -343,7 +382,8 @@ namespace RecipeHub.WinForms
             cmbEditCategory.ValueMember = "Id";
             cmbEditCategory.SelectedIndex = -1;
         }
-        private async Task LoadFilterLookupsAsync()
+        // Laden der Lookup-Daten für Filter-Comboboxen
+        private async Task LoadFilterCategoryLookupsAsync()
         {
             var cats = await _categoryService.GetAllAsync();
             comboBoxFilterKategorie.DataSource = null;
@@ -352,6 +392,17 @@ namespace RecipeHub.WinForms
             comboBoxFilterKategorie.ValueMember = "Id";
             comboBoxFilterKategorie.SelectedIndex = -1; // nichts vorauswählen
         }
+        // Laden der Lookup-Daten für Filter-Comboboxen
+        private async Task LoadFilterIngredientLookupAsync()
+        {
+            var ings = await _ingredientService.GetAllAsync();
+            comboBoxFilterIngredient.DataSource = null;
+            comboBoxFilterIngredient.DataSource = ings;
+            comboBoxFilterIngredient.DisplayMember = "Name";
+            comboBoxFilterIngredient.ValueMember = "Id";
+            comboBoxFilterIngredient.SelectedIndex = -1;
+        }
+        // Laden der Lookup-Daten für Edit-Comboboxen
         private async Task LoadEditCategoryLookupAsync(int? selectId = null)
         {
             var cats = await _categoryService.GetAllAsync();
@@ -362,7 +413,8 @@ namespace RecipeHub.WinForms
             comboBoxEditCategory.SelectedIndex = -1;
             if (selectId.HasValue) comboBoxEditCategory.SelectedValue = selectId.Value;
         }
-        private async Task ReloadEditIngredientsLookupAsync(int? selectId = null)
+        // Laden der Lookup-Daten für Edit-Comboboxen
+        private async Task LoadEditIngredientsLookupAsync(int? selectId = null)
         {
             var ings = await _ingredientService.GetAllAsync();
             cmbEditIngredient.DataSource = null;
@@ -370,23 +422,34 @@ namespace RecipeHub.WinForms
             cmbEditIngredient.DisplayMember = "Name";
             cmbEditIngredient.ValueMember = "Id";
             if (selectId.HasValue)
+            {
                 cmbEditIngredient.SelectedValue = selectId.Value;
+            }
             else
+            {
                 cmbEditIngredient.SelectedIndex = -1;
+            }
         }
-        private async Task ReloadEditCategoriesLookupAsync(int? selectId = null)
+        // Laden der Lookup-Daten für Edit-Comboboxen
+        private async Task LoadEditCategoriesLookupAsync(int? selectId = null)
         {
             var cats = await _categoryService.GetAllAsync();
             cmbEditCategory.DataSource = null;
             cmbEditCategory.DataSource = cats;
             cmbEditCategory.DisplayMember = "Name";
             cmbEditCategory.ValueMember = "Id";
+
             if (selectId.HasValue)
+            {
                 cmbEditCategory.SelectedValue = selectId.Value;
+            }
             else
+            {
                 cmbEditCategory.SelectedIndex = -1;
+            }
         }
-        private async Task ReloadCategoriesAsync(int? selectId = null)
+        // Laden der Lookup-Daten für Comboboxen für Rezeptanlegen
+        private async Task LoadCategoriesAsync(int? selectId = null)
         {
             var cats = await _categoryService.GetAllAsync();
             comboBoxCategory.DataSource = null;
@@ -627,6 +690,13 @@ namespace RecipeHub.WinForms
                 query = query.Where(r => r.Categories.Any(c => c.Id == catId));
             }
 
+            // Zutaten-Filter anwenden, wenn Checkbox aktiv und eine Zutat gewählt
+            if (checkBoxFilterIngredient.Checked && comboBoxFilterIngredient.SelectedItem is Ingredient selIng)
+            {
+                int ingId = selIng.Id;
+                query = query.Where(r => r.Ingredients.Any(i => i.Id == ingId));
+            }
+
             // 🔹 Hier die Kategorie-Spalte hinzufügen
             var view = await query
                 .Select(r => new
@@ -654,11 +724,6 @@ namespace RecipeHub.WinForms
                 int ownerId = Convert.ToInt32(ownerCell);
                 bool canEdit = _currentUser != null && ownerId != _currentUser!.Id;
                 row.Cells["colFavCheck"].ReadOnly = !canEdit;
-                /*if (row.DataBoundItem is null) continue;
-                dynamic vm = row.DataBoundItem!;
-                int ownerId = (int)vm.UserId;
-                bool canEdit = _currentUser != null && ownerId != _currentUser.Id;
-                row.Cells["colFavCheck"].ReadOnly = !canEdit;*/
             }
         }
 
@@ -676,9 +741,23 @@ namespace RecipeHub.WinForms
         #region Favoriten
         private async void dataGridAllRecipes_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            if (_suppressFavEvents) return;
-            if (e.RowIndex < 0) return;
-            if (dataGridAllRecipes.Columns[e.ColumnIndex].Name != "colFavCheck") return;
+            // Favoriten-Checkbox geändert
+            if (_suppressFavEvents)
+            {
+                return;
+            }
+
+            // Gültigkeitsprüfungen
+            if (e.RowIndex < 0)
+            {
+                return;
+            }
+
+            // Nur klicken auf Favoriten-Spalte behandeln
+            if (dataGridAllRecipes.Columns[e.ColumnIndex].Name != "colFavCheck")
+            {
+                return;
+            }
 
             var row = dataGridAllRecipes.Rows[e.RowIndex];
 
@@ -686,10 +765,11 @@ namespace RecipeHub.WinForms
             int recipeId = Convert.ToInt32(row.Cells["colId"].Value);
             int ownerId = Convert.ToInt32(row.Cells["colOwnerId"].Value);
 
-            // Neuer Zustand:
+            // Neuer Zustand der Checkbox Spalte:
             var chkCell = (DataGridViewCheckBoxCell)row.Cells["colFavCheck"];
-            bool isChecked = Convert.ToBoolean(chkCell.EditedFormattedValue ?? chkCell.Value ?? false);
 
+            // Aktuellen Wert ermitteln (EditedFormattedValue hat Vorrang vor Value)
+            bool isChecked = Convert.ToBoolean(chkCell.EditedFormattedValue ?? chkCell.Value ?? false);
 
             // Regeln: Login + nicht eigenes Rezept
             if (_currentUser == null || ownerId == _currentUser.Id)
@@ -707,9 +787,13 @@ namespace RecipeHub.WinForms
             try
             {
                 if (isChecked)
+                {
                     await _favoriteService.AddFavoriteAsync(_currentUser.Id, recipeId);
+                }
                 else
+                {
                     await _favoriteService.RemoveFavoriteAsync(_currentUser.Id, recipeId);
+                }
             }
             catch (Exception ex)
             {
@@ -753,9 +837,41 @@ namespace RecipeHub.WinForms
         }
         private void buttonAddIngredient_Click(object sender, EventArgs e)
         {
-            if (comboBoxIngredients.SelectedItem is not Ingredient ing) return;
+            // Ausgewählte Zutat ermitteln
+            if (comboBoxIngredients.SelectedItem is not Ingredient ing)
+            {
+                return;
+            }
             AddChip(ing);
         }
+
+        private async void checkBoxFilterIngredient_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                await LoadAllRecipesAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Filterfehler (Zutat):\n" + ex.Message);
+            }
+        }
+
+        private async void comboBoxFilterIngredient_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (checkBoxFilterIngredient.Checked)
+                {
+                    await LoadAllRecipesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Filterfehler (Zutat):\n" + ex.Message);
+            }
+        }
+
         #endregion
 
         #region Kategorienverwaltung
@@ -786,7 +902,9 @@ namespace RecipeHub.WinForms
         private void buttonAddCategory_Click(object sender, EventArgs e)
         {
             if (comboBoxCategory.SelectedItem is Category cat)
+            {
                 AddCategoryChip(cat);
+            }
         }
         private async void checkBoxFilterKategorie_CheckedChanged(object sender, EventArgs e)
         {
@@ -834,7 +952,8 @@ namespace RecipeHub.WinForms
                 await _categoryService.UpdateNameAsync(sel.Id, newName);
 
                 // UI aktualisieren: Filter-Combo, „Neues Rezept“-Combos, Edit-Combo und Grids
-                await LoadFilterLookupsAsync();
+                await LoadFilterCategoryLookupsAsync();
+                await LoadFilterIngredientLookupAsync();
                 await LoadEditCategoryLookupAsync(sel.Id);
                 await LoadAllRecipesAsync();
                 await LoadMyRecipesAsync();
@@ -853,16 +972,24 @@ namespace RecipeHub.WinForms
         private void comboBoxEditCategory_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBoxEditCategory.SelectedItem is Category cat)
+            {
                 textBoxEditCategorie.Text = cat.Name;
+            }
             else
+            {
                 textBoxEditCategorie.Clear();
+            }
         }
+
         #endregion
 
         #region Rezeptbearbeitung (Edit-Tab)
         private async void dgvMyRecipes_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (_currentUser == null || e.RowIndex < 0) return;
+            if (_currentUser == null || e.RowIndex < 0)
+            {
+                return;
+            }
 
             try
             {
@@ -875,10 +1002,8 @@ namespace RecipeHub.WinForms
                     return;
                 }
 
-                // funktioniert für int, long und string
-                int recipeId = idVal is int i
-                    ? i
-                    : Convert.ToInt32(idVal);
+                // ID extrahieren
+                int recipeId = Convert.ToInt32(idVal);
 
                 await OpenEditTabAsync(recipeId);
             }
@@ -901,7 +1026,9 @@ namespace RecipeHub.WinForms
 
             // Falls der Edit-Tab noch nicht sichtbar ist → einblenden
             if (tabPageEdit.Parent == null)
+            {
                 tabControl.TabPages.Add(tabPageEdit);
+            }
 
             // Felder füllen
             textBoxEditName.Text = r.Name;
@@ -913,11 +1040,17 @@ namespace RecipeHub.WinForms
             flowLayoutPanelEditIngredients.Controls.Clear();
             flowLayoutPanelEditCategories.Controls.Clear();
 
-            // Zutaten und Kategorienchips aufbauen
+            // Zutatenchips aufbauen
             foreach (var ing in r.Ingredients)
+            {
                 AddEditChip(flowLayoutPanelEditIngredients, _editIngredientIds, ing.Id, ing.Name);
+            }
+
+            // Kategorienchips aufbauen
             foreach (var cat in r.Categories)
+            {
                 AddEditChip(flowLayoutPanelEditCategories, _editCategoryIds, cat.Id, cat.Name);
+            }
 
             // Dropdowns befüllen (alle Zutaten/Kategorien)
             await LoadEditLookupsAsync();
@@ -940,7 +1073,7 @@ namespace RecipeHub.WinForms
                 var ing = await _ingredientService.GetOrCreateAsync(name);
 
                 // Combobox neu laden & auswählen
-                await ReloadEditIngredientsLookupAsync(ing.Id);
+                await LoadEditIngredientsLookupAsync(ing.Id);
 
                 // sofort zum Rezept hinzufügen (Chip)
                 if (!_editIngredientIds.Contains(ing.Id))
@@ -968,7 +1101,7 @@ namespace RecipeHub.WinForms
 
                 var cat = await _categoryService.GetOrCreateAsync(name);
 
-                await ReloadEditCategoriesLookupAsync(cat.Id);
+                await LoadEditCategoriesLookupAsync(cat.Id);
 
                 if (!_editCategoryIds.Contains(cat.Id))
                     AddEditChip(flowLayoutPanelEditCategories, _editCategoryIds, cat.Id, cat.Name);
@@ -1052,7 +1185,12 @@ namespace RecipeHub.WinForms
         }
         private void AddChip(Ingredient ing)
         {
-            if (_selectedIngredients.Any(x => x.Id == ing.Id)) return;
+            // Duplikate verhindern
+            if (_selectedIngredients.Any(x => x.Id == ing.Id))
+            {
+                return;
+            }
+
             _selectedIngredients.Add(ing);
 
             var chip = new FlowLayoutPanel
@@ -1062,7 +1200,7 @@ namespace RecipeHub.WinForms
                 FlowDirection = FlowDirection.LeftToRight,
                 WrapContents = false,
                 BackColor = Color.WhiteSmoke,
-                BorderStyle = BorderStyle.FixedSingle,   // sichtbarer Rahmen
+                BorderStyle = BorderStyle.FixedSingle,   
                 Margin = new Padding(4),
                 Padding = new Padding(8, 4, 8, 4),
                 Tag = ing.Id
@@ -1077,7 +1215,7 @@ namespace RecipeHub.WinForms
 
             var btn = new Button
             {
-                Text = "×",                          // schöner als "x"
+                Text = "×",                          
                 AutoSize = true,
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 Padding = Padding.Empty,
@@ -1101,7 +1239,11 @@ namespace RecipeHub.WinForms
         }
         private void AddEditChip(FlowLayoutPanel host, HashSet<int> bag, int id, string name)
         {
-            if (!bag.Add(id)) return;
+            // Duplikate verhindern
+            if (!bag.Add(id))
+            {
+                return;
+            }
 
             var chip = new FlowLayoutPanel
             {
@@ -1115,10 +1257,29 @@ namespace RecipeHub.WinForms
                 Padding = new Padding(8, 4, 8, 4),
                 Tag = id
             };
-            var lbl = new Label { AutoSize = true, Text = name, Margin = new Padding(0, 3, 6, 0) };
-            var btn = new Button { Text = "×", AutoSize = true, FlatStyle = FlatStyle.Flat, Padding = Padding.Empty, Margin = new Padding(0) };
+            var lbl = new Label 
+            { 
+                AutoSize = true, 
+                Text = name, 
+                Margin = new Padding(0, 3, 6, 0) 
+            };
+
+            var btn = new Button 
+            { 
+                Text = "×", 
+                AutoSize = true, 
+                FlatStyle = FlatStyle.Flat, 
+                Padding = Padding.Empty, 
+                Margin = new Padding(0) 
+            };
+
             btn.FlatAppearance.BorderSize = 0;
-            btn.Click += (_, __) => { bag.Remove(id); host.Controls.Remove(chip); chip.Dispose(); };
+            btn.Click += (_, __) => 
+                { 
+                    bag.Remove(id); 
+                    host.Controls.Remove(chip); 
+                    chip.Dispose(); 
+                };
 
             chip.Controls.Add(lbl);
             chip.Controls.Add(btn);
@@ -1126,7 +1287,11 @@ namespace RecipeHub.WinForms
         }
         private void AddCategoryChip(Category cat)
         {
-            if (_selectedCategories.Any(c => c.Id == cat.Id)) return; // Duplikate verhindern
+            // Duplikate verhindern
+            if (_selectedCategories.Any(c => c.Id == cat.Id))
+            {
+                return; 
+            }
             _selectedCategories.Add(cat);
 
             var chip = new FlowLayoutPanel

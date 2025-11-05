@@ -99,6 +99,9 @@
             buttonSaveEditCategory = new Button();
             textBoxEditCategorie = new TextBox();
             comboBoxEditCategory = new ComboBox();
+            groupBox3 = new GroupBox();
+            comboBoxFilterIngredient = new ComboBox();
+            checkBoxFilterIngredient = new CheckBox();
             panel3.SuspendLayout();
             tabControl.SuspendLayout();
             tabPageAllRecipe.SuspendLayout();
@@ -114,6 +117,7 @@
             groupBox2.SuspendLayout();
             groupBox1.SuspendLayout();
             groupBoxEditCategorie.SuspendLayout();
+            groupBox3.SuspendLayout();
             SuspendLayout();
             // 
             // panel3
@@ -767,7 +771,7 @@
             groupBoxEditCategorie.Controls.Add(buttonSaveEditCategory);
             groupBoxEditCategorie.Controls.Add(textBoxEditCategorie);
             groupBoxEditCategorie.Controls.Add(comboBoxEditCategory);
-            groupBoxEditCategorie.Location = new Point(12, 248);
+            groupBoxEditCategorie.Location = new Point(12, 356);
             groupBoxEditCategorie.Name = "groupBoxEditCategorie";
             groupBoxEditCategorie.Size = new Size(247, 191);
             groupBoxEditCategorie.TabIndex = 4;
@@ -819,11 +823,43 @@
             comboBoxEditCategory.TabIndex = 0;
             comboBoxEditCategory.SelectedIndexChanged += comboBoxEditCategory_SelectedIndexChanged;
             // 
+            // groupBox3
+            // 
+            groupBox3.Controls.Add(comboBoxFilterIngredient);
+            groupBox3.Controls.Add(checkBoxFilterIngredient);
+            groupBox3.Location = new Point(12, 248);
+            groupBox3.Name = "groupBox3";
+            groupBox3.Size = new Size(247, 100);
+            groupBox3.TabIndex = 5;
+            groupBox3.TabStop = false;
+            groupBox3.Text = "Zutaten Filter";
+            // 
+            // comboBoxFilterIngredient
+            // 
+            comboBoxFilterIngredient.FormattingEnabled = true;
+            comboBoxFilterIngredient.Location = new Point(14, 59);
+            comboBoxFilterIngredient.Name = "comboBoxFilterIngredient";
+            comboBoxFilterIngredient.Size = new Size(220, 23);
+            comboBoxFilterIngredient.TabIndex = 1;
+            comboBoxFilterIngredient.SelectedIndexChanged += comboBoxFilterIngredient_SelectedIndexChanged;
+            // 
+            // checkBoxFilterIngredient
+            // 
+            checkBoxFilterIngredient.AutoSize = true;
+            checkBoxFilterIngredient.Location = new Point(11, 22);
+            checkBoxFilterIngredient.Name = "checkBoxFilterIngredient";
+            checkBoxFilterIngredient.Size = new Size(54, 19);
+            checkBoxFilterIngredient.TabIndex = 0;
+            checkBoxFilterIngredient.Text = "Zutat";
+            checkBoxFilterIngredient.UseVisualStyleBackColor = true;
+            checkBoxFilterIngredient.CheckedChanged += checkBoxFilterIngredient_CheckedChanged;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1139, 617);
+            Controls.Add(groupBox3);
             Controls.Add(groupBoxEditCategorie);
             Controls.Add(groupBox1);
             Controls.Add(groupBox2);
@@ -850,6 +886,8 @@
             groupBox1.PerformLayout();
             groupBoxEditCategorie.ResumeLayout(false);
             groupBoxEditCategorie.PerformLayout();
+            groupBox3.ResumeLayout(false);
+            groupBox3.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -925,5 +963,8 @@
         private Button buttonSaveEditCategory;
         private TextBox textBoxEditCategorie;
         private ComboBox comboBoxEditCategory;
+        private GroupBox groupBox3;
+        private ComboBox comboBoxFilterIngredient;
+        private CheckBox checkBoxFilterIngredient;
     }
 }

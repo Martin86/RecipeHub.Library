@@ -1,0 +1,5 @@
+Mehl,Eier,Essig,Rote Beete,Zucker,Salz,Pfeffer,Tomaten,Olivenöl,Knoblauch,Zwiebeln,Kräuter
+Kartoffeln,Paprika,Reis,Käse,Wasser,Basilikum,Thymian,Oregano,Milch,Butter,Feta,Möhren
+Sellerie,Champignons,Gurke,Petersilie,Apfel,Birnen,Kürbis,Linsen,Spinat,Avocado,Hähnchenbrust
+Rindfleisch,Speck,Schinken,Fisch,Nudeln,Blumenkohl,Spaghetti,Vanille,Kakao,Bananen,Aprikosen
+Pfirsiche,Zimt,Rosmarin,Chili,Zitronensaft,Kokosnuss
