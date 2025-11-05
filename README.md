@@ -8,7 +8,7 @@ Das Projekt besteht aus einer C# Bibliothek (RecipeHub.Library) und einem Beispi
 ### Voraussetzungen
 - .NET 8 SDK
 - Visual Studio 2022 
-- SQLite (keine separate Installation nötig, wird automatisch per NuGet verwendet)
+- SQLite
 
 ###  Technologien
 
