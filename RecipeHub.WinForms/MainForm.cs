@@ -774,6 +774,50 @@ namespace RecipeHub.WinForms
                 RemoveChip(id, chip);
         }
 
+        private async void dgvMyRecipes_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (_currentUser == null)
+            {
+                return;
+            }
+            if (e.RowIndex < 0)
+            {
+                return;
+            }
+
+            var grid = dgvMyRecipes;
+            var colName = grid.Columns[e.ColumnIndex].Name;
+
+            // Nur Löschen-Spalte behandeln
+            if (colName != "colDelete")
+            {
+                return;
+            }
+
+            // ID aus versteckter Spalte holen
+            var idObj = grid.Rows[e.RowIndex].Cells["colId"].Value;
+            if (idObj is null || idObj == DBNull.Value) return;
+            int recipeId = Convert.ToInt32(idObj);
+
+            // Bestätigen
+            if (MessageBox.Show("Rezept wirklich löschen?", "Bestätigen",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            {
+                return;
+            }
+
+            try
+            {
+                await _recipeService.DeleteAsync(recipeId, _currentUser.Id);
+                await LoadMyRecipesAsync();
+                await LoadAllRecipesAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Löschen fehlgeschlagen:\n" + ex.Message);
+            }
+        }
+
         #endregion
 
         #region Favoriten
@@ -1397,50 +1441,6 @@ namespace RecipeHub.WinForms
             chip.Controls.Add(btn);
             flowLayoutPanelKategory.Controls.Add(chip);
         }
-        #endregion
-
-        private async void dgvMyRecipes_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (_currentUser == null)
-            {
-                return;
-            }
-            if (e.RowIndex < 0)
-            {
-                return;
-            }
-
-            var grid = dgvMyRecipes;
-            var colName = grid.Columns[e.ColumnIndex].Name;
-
-            // Nur Löschen-Spalte behandeln
-            if (colName != "colDelete")
-            {
-                return; 
-            }
-
-            // ID aus versteckter Spalte holen
-            var idObj = grid.Rows[e.RowIndex].Cells["colId"].Value;
-            if (idObj is null || idObj == DBNull.Value) return;
-            int recipeId = Convert.ToInt32(idObj);
-
-            // Bestätigen
-            if (MessageBox.Show("Rezept wirklich löschen?", "Bestätigen",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
-            {
-                return;
-            }
-
-            try
-            {
-                await _recipeService.DeleteAsync(recipeId, _currentUser.Id);
-                await LoadMyRecipesAsync();
-                await LoadAllRecipesAsync();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Löschen fehlgeschlagen:\n" + ex.Message);
-            }
-        }
+        #endregion     
     }
 }
