@@ -44,6 +44,25 @@ public class CategoryService
         return category;
     }
 
+    public async Task DeleteAsync(int categoryId)
+    {
+        // Prüfen, ob noch Rezepte zugeordnet sind
+        var cat = await _db.Categories
+            .Include(c => c.Recipes)
+            .FirstOrDefaultAsync(c => c.Id == categoryId);
+
+        // Kategorie existiert?
+        if (cat is null)
+            throw new InvalidOperationException("Kategorie nicht gefunden.");
+
+        // Noch Rezepte zugeordnet?
+        if (cat.Recipes != null && cat.Recipes.Any())
+            throw new InvalidOperationException("Kategorie kann nicht gelöscht werden, da noch Rezepte zugeordnet sind.");
+
+        // Kategorie löschen
+        await _categories.DeleteAsync(categoryId);
+    }
+
     public async Task UpdateNameAsync(int categoryId, string newName)
     {
         var n = (newName ?? "").Trim();
